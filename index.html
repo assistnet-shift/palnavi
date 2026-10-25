@@ -1,47 +1,93 @@
 <!doctype html>
+<!-- 版：パルナビ入口 v2（ログイン＋ホーム） 2026-10-25 -->
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>パルナビ</title>
 <meta name="apple-mobile-web-app-title" content="パルナビ">
 <meta name="theme-color" content="#F08228">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="manifest" href="manifest.webmanifest">
-<!-- 帯・見出し・ボタンの名前は丸ゴシック（アイコンと同じ字。やさしく見せるため。全システム共通） -->
+<!-- 帯・見出し・ボタンの名前は丸ゴシック（アイコンと同じ字。全システム共通） -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@700;800&display=swap" rel="stylesheet">
 <style>
-  body{margin:0;font-family:sans-serif;background:#FFFBF3;color:#222;line-height:1.7}
-  header{background:#F08228;color:#fff;padding:12px 16px}
-  header,#bar,.btn>span,h2,.go,#wait{font-family:"M PLUS Rounded 1c",sans-serif}
-  .btn small{font-family:sans-serif}
+  :root{--cream:#FFFBF3;--orange:#F08228;--red:#D8342A;--ink:#3B2A1E;--sub:#7A6656;--line:#EADFCF;
+        --round:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN",sans-serif;color-scheme:light}
+  body{margin:0;font-family:-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;background:var(--cream);color:var(--ink);line-height:1.6;font-size:15px}
+  header{background:var(--orange);color:#fff;padding:12px 16px;padding-top:max(12px,env(safe-area-inset-top))}
+  header,#bar,h1,h2,.btn .n,.go,#wait,.primary,.pbtn,.clock .d,.clock .t,.hello{font-family:var(--round)}
   header b{font-size:20px;font-weight:800}
   header span{font-size:12px;opacity:.85;margin-left:8px}
-  .wrap{max-width:480px;margin:0 auto;padding:16px}
-  .btn{display:flex;align-items:center;gap:14px;width:100%;box-sizing:border-box;text-align:left;background:#fff;border:2px solid #F08228;border-radius:14px;padding:16px;margin:0 0 14px;font-size:19px;font-weight:bold;color:#F08228;cursor:pointer;font-family:inherit}
+  .wrap{max-width:480px;margin:0 auto;padding:16px;box-sizing:border-box}
+  .col{display:flex;flex-direction:column;gap:14px}
+  /* ログイン */
+  .logo{display:flex;flex-direction:column;align-items:center;gap:6px;padding-top:4px}
+  .logo img{width:84px;height:84px;border-radius:20px}
+  h1{font-size:22px;font-weight:800;margin:0}
+  .lead{margin:0;color:var(--sub);text-align:center}
+  form{display:flex;flex-direction:column;gap:12px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px}
+  label{font-weight:700;font-size:14px;display:flex;flex-direction:column;gap:6px}
+  input{font-size:22px;letter-spacing:.15em;padding:10px 12px;border:2px solid var(--line);border-radius:10px;color:var(--ink);background:#fff;font-variant-numeric:tabular-nums;width:100%;box-sizing:border-box}
+  input:focus{outline:none;border-color:var(--orange)}
+  .primary{font-weight:800;font-size:19px;color:#fff;background:var(--orange);border:none;border-radius:12px;padding:14px;cursor:pointer}
+  .primary[disabled]{opacity:.6}
+  .err{color:var(--red);font-weight:700;font-size:14px;margin:0}
+  .forgot{margin:0;text-align:center}
+  /* ホーム */
+  .clock{text-align:center;padding:2px 0 0}
+  .clock .d{font-weight:800;font-size:24px;margin:0;letter-spacing:.02em}
+  .clock .t{font-weight:800;font-size:40px;margin:0;line-height:1.1;font-variant-numeric:tabular-nums}
+  .hello{font-weight:800;font-size:18px;margin:0}
+  .box{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+  .box h2{margin:0;font-weight:800;font-size:15px;color:var(--sub);display:flex;align-items:center;gap:8px}
+  .tag{font-family:sans-serif;font-size:12px;font-weight:700;color:#fff;background:#8C8175;border-radius:999px;padding:1px 9px}
+  .tag.mihon{background:#2E7D4F}
+  .punch{border:2px dashed #2E7D4F;background:#F4FBF5}
+  .punch .state{margin:0;color:var(--sub)}
+  .punch .state b{color:var(--ink);font-size:16px;font-variant-numeric:tabular-nums}
+  .hint{margin:0;font-weight:700;color:#2E7D4F}
+  .pbtn{font-weight:800;font-size:24px;color:#fff;border:none;border-radius:14px;padding:18px;cursor:pointer;background:#2E7D4F}
+  .pbtn.out{background:#8A5A33}
+  .pbtn[disabled]{background:#B9B1A7;cursor:default}
+  .small{margin:0;font-size:13px;color:var(--sub)}
+  .prep{opacity:.55}
+  .btn{position:relative;display:flex;align-items:center;gap:14px;width:100%;box-sizing:border-box;text-align:left;background:#fff;border:2px solid;border-radius:16px;padding:14px;margin:0;cursor:pointer;font:inherit;color:var(--ink)}
   .btn .ic{flex:none}
-  .btn small{display:block;font-size:12px;font-weight:normal;color:#666}
-  .btn.off{opacity:.55;cursor:default}
-  .btn em{font-style:normal;font-size:11px;font-weight:bold;color:#fff;background:#999;border-radius:8px;padding:1px 7px;margin-left:6px;vertical-align:middle}
+  .btn .n{display:block;font-weight:800;font-size:19px;margin-bottom:2px}
+  .btn small{display:block;font-size:13.5px;color:var(--sub);line-height:1.5}
+  .btn .go2{margin-left:auto;font-family:var(--round);font-weight:800;font-size:22px}
+  .apps{display:flex;flex-direction:column;gap:12px}
+  .sec{font:inherit;font-weight:700;font-size:16px;background:#fff;border:2px solid var(--line);border-radius:12px;padding:12px;cursor:pointer;color:var(--ink)}
   .note{font-size:13px;color:#666}
+  /* 確かめる画面 */
+  .dialog{position:fixed;inset:0;background:rgba(40,25,10,.45);display:grid;place-items:center;z-index:20;padding:16px}
+  .dialog>div{background:#fff;border-radius:16px;padding:20px;max-width:330px;width:100%;box-sizing:border-box;display:flex;flex-direction:column;gap:12px;text-align:center}
+  .dialog .big{font-family:var(--round);font-weight:800;font-size:20px;margin:0;font-variant-numeric:tabular-nums}
+  .dialog .row{display:flex;gap:10px}
+  .dialog .row button{flex:1}
+  /* 追加のしかた（?a=1） */
   .icon{display:block;width:88px;height:88px;border-radius:20px;margin:6px auto}
-  .go{display:block;text-align:center;background:#F08228;color:#fff;text-decoration:none;font-size:18px;padding:14px;border-radius:10px;margin:12px 0 20px}
-  .box{background:#fff;border:1px solid #f3d9bf;border-radius:10px;padding:12px 14px;margin:10px 0}
-  h2{font-size:16px;margin:0 0 6px;color:#D9531E}
+  .go{display:block;text-align:center;background:var(--orange);color:#fff;text-decoration:none;font-size:18px;padding:14px;border-radius:10px;margin:12px 0 20px}
+  .gbox{background:#fff;border:1px solid #f3d9bf;border-radius:10px;padding:12px 14px;margin:10px 0}
+  .gbox h2{font-size:16px;margin:0 0 6px;color:#D9531E}
   ol{margin:0;padding-left:1.3em}
-  #bar{display:none;position:fixed;top:0;left:0;right:0;height:40px;background:#F08228;color:#fff;align-items:center;padding:0 10px;z-index:5;font-size:15px}
+  /* 各システムを中に出す */
+  #bar{display:none;position:fixed;top:0;left:0;right:0;height:40px;background:var(--orange);color:#fff;align-items:center;padding:0 10px;z-index:5;font-size:15px}
   #bar a{color:#fff;text-decoration:none;font-weight:bold}
   #app{position:fixed;top:40px;left:0;width:100%;height:calc(100% - 40px);border:0;display:none;background:#fff}
-  #wait{display:none;text-align:center;padding:40px 16px;color:#F08228}
+  #wait{display:none;text-align:center;padding:40px 16px;color:var(--orange)}
+  button:focus-visible{outline:3px solid #1d1d1d;outline-offset:2px}
+  [hidden]{display:none!important}
 </style>
 </head>
 <body>
 <header id="head"><b>パルナビ</b><span>パルフーズ 販売スタッフ</span></header>
 
-<!-- メニュー（アイコンから開いたとき） -->
+<!-- ログイン・ホーム（アイコンから開いたとき） -->
 <div class="wrap" id="menu" style="display:none"></div>
 
 <!-- ホーム画面への追加のしかた（配るURL …?a=1 で開いたとき） -->
@@ -49,14 +95,14 @@
   <img class="icon" src="apple-touch-icon.png" alt="">
   <p style="text-align:center;margin:0"><b>このページをホーム画面に追加すると、<br>次からはアイコンを押すだけで開けます。</b></p>
   <a class="go" href="./">パルナビを開く</a>
-  <div class="box"><h2>iPhoneでSafariの人</h2><ol>
+  <div class="gbox"><h2>iPhoneでSafariの人</h2><ol>
     <li>下の<b>共有ボタン</b>（四角に上向きの矢印）を押す</li>
     <li>「<b>ホーム画面に追加</b>」→「<b>追加</b>」</li></ol></div>
-  <div class="box"><h2>iPhoneでChromeの人</h2><ol>
+  <div class="gbox"><h2>iPhoneでChromeの人</h2><ol>
     <li>右上の<b>共有ボタン</b>（四角に上向きの矢印）を押す</li>
     <li>「<b>表示を増やす</b>」を押す</li>
     <li>下のほうへ動かして「<b>ホーム画面に追加</b>」→「<b>追加</b>」</li></ol></div>
-  <div class="box"><h2>Androidの人</h2><ol>
+  <div class="gbox"><h2>Androidの人</h2><ol>
     <li><b>Chrome</b>でこのページを開く</li>
     <li>右上の<b>点が3つのボタン</b>を押す</li>
     <li>「<b>ホーム画面に追加</b>」→「<b>追加</b>」</li></ol></div>
@@ -67,22 +113,24 @@
 <div id="bar"><a href="./">‹ パルナビ</a><span id="barT" style="margin-left:12px;opacity:.85"></span></div>
 <div id="wait">開いています…</div>
 <iframe id="app" title="パルナビ"></iframe>
+<div class="dialog" id="dlg" hidden><div id="dlgBody"></div></div>
 
 <script>
+// ===== パルナビ本体（ログインを受け付けるGoogleのプログラム）のURL =====
+var HONTAI_URL = 'https://script.google.com/macros/s/AKfycbxatZVyenhqIbfmpnDE-1G2on_rbqnxSwzpgVkt0nqMn41psurF28w8Fst_OPphmgq3ZA/exec';
 // ===== ボタンの一覧（増やす・名前を変えるときはここだけ直す）=====
-// url が空のものは「準備中」と出る。col＝そのシステムの色（ボタンの枠と上の帯）。どこにいるか迷わないように1つずつ変える
-// ic＝ボタンの絵（下のICONSの名前）。絵文字は機種で絵が変わる（iPhoneのカレンダーは日付入り）ので使わない
+// 並びは毎日使う順で固定。url が空のものは「準備中」で押せない。col＝そのシステムの色
+// desc＝ボタンの下の説明（1行ずつ）。ic＝ボタンの絵（下のICONS）。絵文字は機種で絵が変わるので使わない
 var APPS = [
-  { key: 'shift',   ic: 'cal',   name: '休み・シフト',   sub: '休みの申請・ヘルプの行き先・メッセージ', col: '#2E7D4F',
+  { key: 'shift',   ic: 'cal',   name: '休み・シフト',   desc: ['休みの申請', 'ヘルプの行き先', 'メッセージ'], col: '#2E7D4F', bg: '#EEF7EE',
     url: 'https://script.google.com/macros/s/AKfycbxKeAJdy7yPLMgJfe7t0ljhy5BYGuKgiROWgIiYWGi3W2N5MeAk6hjXzjFjhE4vtaIt/exec' },
-  { key: 'order',   ic: 'list',  name: '発注・売上',     sub: '発注表・売上の報告', col: '#6A5AA8',
+  { key: 'order',   ic: 'list',  name: '発注・売上',     desc: ['お弁当の発注', '売上の報告'], col: '#6A5AA8', bg: '#F1EEFA',
     url: 'https://script.google.com/macros/s/AKfycbzONh4migWOInvwihrngaF8R1K1leY4-Tdz_SbGf4_qW7iCoTvkhIpFv2HVVwnWnErV/exec' },
-  { key: 'bihin',   ic: 'box',   name: '備品・釣り銭',   sub: '備品・釣り銭・両替の依頼', col: '#8A5A33',
+  { key: 'bihin',   ic: 'box',   name: '備品・釣り銭',   desc: ['備品の依頼', '釣り銭・両替の依頼'], col: '#8A5A33', bg: '#F5EEE6',
     url: 'https://script.google.com/macros/s/AKfycbwCTIuAN6vURKs2GtaGq5Rl633PrB0nBX-uem4cprFC91fW7xbVbM5zqEqCcoZO4QUP/exec' },
-  { key: 'oishisa', ic: 'heart', name: 'おいしさ応援隊', sub: 'お弁当の気づきを工場へ届けよう', col: '#E8603C',
+  { key: 'oishisa', ic: 'heart', name: 'おいしさ応援隊', desc: ['お弁当の気づきを工場へ届けよう'], col: '#E8603C', bg: '#FFEBDD',
     url: 'https://script.google.com/macros/s/AKfycbzb1lJB2A1ffcK-vR2bhq7nKoopiTtj_hTtWQ25BHpZpHzHI-Atfav0xvWEBBN64O5j9Q/exec' }
 ];
-// ボタンの絵（日付や文字の入らない、色だけで描くシンプルな絵）
 var ICONS = {
   cal:   '<rect x="5" y="9" width="38" height="34" rx="6" fill="none" stroke="C" stroke-width="4"/><path d="M5 19h38" stroke="C" stroke-width="4"/><path d="M15 5v8M33 5v8" stroke="C" stroke-width="4" stroke-linecap="round"/><path d="M15 31l6 6 12-12" fill="none" stroke="C" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>',
   heart: '<path d="M24 42S6 31 6 18a9.5 9.5 0 0 1 18-4.5A9.5 9.5 0 0 1 42 18c0 13-18 24-18 24z" fill="C"/>',
@@ -92,16 +140,137 @@ var ICONS = {
 function icon(a){ return '<svg class="ic" viewBox="0 0 48 48" width="36" height="36" aria-hidden="true">' + ICONS[a.ic].replace(/C/g, a.col) + '</svg>'; }
 // =================================================================
 function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+var WD = ['日', '月', '火', '水', '木', '金', '土'];
+// 日本時間の「今」（スマホがどこの時間に設定されていても日本時間で出す）
+function jst(){ var d = new Date(); return new Date(d.getTime() + (d.getTimezoneOffset() + 540) * 60000); }
+function ymd(d){ return '' + d.getFullYear() + ('0' + (d.getMonth() + 1)).slice(-2) + ('0' + d.getDate()).slice(-2); }
+function hm(d){ return d.getHours() + ':' + ('0' + d.getMinutes()).slice(-2); }
+function md(d){ return (d.getMonth() + 1) + '月' + d.getDate() + '日'; }
+
+// ===== 確認済みの印をスマホに覚えさせる（その日の24時まで） =====
+var KEY = 'palnavi_in';
+function loadIn(){ try { var v = JSON.parse(localStorage.getItem(KEY) || 'null'); return v && v.tok && v.d === ymd(jst()) ? v : null; } catch (e) { return null; } }
+function saveIn(v){ try { localStorage.setItem(KEY, JSON.stringify(v)); } catch (e) {} }
+function clearIn(){ try { localStorage.removeItem(KEY); } catch (e) {} }
+
+function call(body){
+  if (!HONTAI_URL) return Promise.reject(new Error('nourl'));
+  return fetch(HONTAI_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) })
+    .then(function (r) { if (!r.ok) throw new Error('http'); return r.json(); });
+}
+
+// ===== 画面 =====
+var me = null, punch = { inT: null, outT: null }, timer = null;
+function show(html){ $('menu').innerHTML = html; $('menu').style.display = 'block'; }
+function dialog(html){ $('dlgBody').innerHTML = html; $('dlg').hidden = false; }
+function closeDialog(){ $('dlg').hidden = true; }
+
+function showLogin(msg, no){
+  me = null; if (timer) { clearInterval(timer); timer = null; }
+  show('<div class="col">' +
+    '<div class="logo"><img src="apple-touch-icon.png" alt=""><h1>パルナビ</h1><p class="lead">社員番号と暗証番号を入れてください</p></div>' +
+    '<form id="f" novalidate>' +
+      '<label for="no">社員番号（4けた）<input id="no" inputmode="numeric" maxlength="4" autocomplete="off" value="' + esc(no || '') + '"></label>' +
+      '<label for="pin">暗証番号<input id="pin" type="password" inputmode="numeric" maxlength="8" autocomplete="off"></label>' +
+      (msg ? '<p class="err" id="err">' + esc(msg) + '</p>' : '') +
+      '<button class="primary" type="submit" id="go">はいる</button>' +
+    '</form>' +
+    '<p class="forgot">番号を忘れたときは、田知本さんに聞いてください。</p></div>');
+  $('f').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var no = $('no').value.trim(), pin = $('pin').value.trim();
+    if (!no || !pin) return showLogin('社員番号と暗証番号の両方を入れてください。', no);
+    $('go').disabled = true; $('go').textContent = '確かめています…';
+    call({ act: 'login', no: no, pin: pin }).then(function (r) {
+      if (!r || !r.ok) return showLogin((r && r.msg) || 'うまくいきませんでした。もう一度押してください。', no);
+      var v = { tok: r.tok, d: r.d, no: no, name: r.name, apps: r.apps };
+      saveIn(v); punch = { inT: null, outT: null }; showHome(v);
+    }).catch(function () {
+      showLogin('つながりませんでした。電波のよい所で、もう一度押してください。', no);
+    });
+  });
+  if (!no) try { $('no').focus(); } catch (e) {}
+}
+
+function clockHTML(){
+  var d = jst();
+  return '<p class="d">' + md(d) + '（' + WD[d.getDay()] + '）</p><p class="t">' + hm(d) + '</p>';
+}
+function punchHTML(){
+  var s;
+  if (!punch.inT) s = '<p class="state">まだ出勤していません</p><p class="hint">お店に着いてから押してください</p><button type="button" class="pbtn" id="pbtn">出勤する</button>';
+  else if (!punch.outT) s = '<p class="state">出勤 <b>' + punch.inT + '</b></p><p class="hint">仕事が終わってから押してください</p><button type="button" class="pbtn out" id="pbtn">退勤する</button>';
+  else s = '<p class="state">出勤 <b>' + punch.inT + '</b>　退勤 <b>' + punch.outT + '</b></p><button type="button" class="pbtn" disabled>今日はおつかれさまでした</button>';
+  return '<section class="box punch" id="punch"><h2>打刻 <span class="tag mihon">見本</span></h2>' + s +
+    '<p class="small">これは見本です。押しても記録されません。</p></section>';
+}
+function appsHTML(v){
+  var list = APPS.filter(function (a) { return !v.apps || v.apps.indexOf(a.key) >= 0; });
+  if (!list.length) return '<p class="small">使えるものがまだありません。田知本さんに聞いてください。</p>';
+  return '<div class="apps">' + list.map(function (a) {
+    var inner = icon(a) + '<span><span class="n" style="color:' + a.col + '">' + esc(a.name) + (a.url ? '' : ' <span class="tag">準備中</span>') + '</span>' +
+      a.desc.map(function (t) { return '<small>' + esc(t) + '</small>'; }).join('') + '</span>' +
+      (a.url ? '<span class="go2" style="color:' + a.col + '">›</span>' : '');
+    return a.url
+      ? '<button type="button" class="btn" data-key="' + a.key + '" style="border-color:' + a.col + ';background:' + a.bg + '">' + inner + '</button>'
+      : '<div class="btn prep" style="border-color:' + a.col + ';background:' + a.bg + ';cursor:default">' + inner + '</div>';
+  }).join('') + '</div>';
+}
+function showHome(v){
+  me = v;
+  show('<div class="col">' +
+    '<div class="clock" id="clock">' + clockHTML() + '</div>' +
+    '<p class="hello">' + esc(v.name) + 'さん</p>' +
+    '<div id="punchWrap">' + punchHTML() + '</div>' +
+    '<section class="box prep" id="plan"><h2>今日の予定 <span class="tag">準備中</span></h2><p class="small">今日と明日のお店と時間が、ここに出ます。</p></section>' +
+    '<section class="box prep" id="info"><h2>お知らせ <span class="tag">準備中</span></h2><p class="small">会社や各システムからのお知らせが、ここに出ます。</p></section>' +
+    appsHTML(v) +
+    '<p class="small">使いたいものを押してください。</p>' +
+    '<button type="button" class="sec" id="logout">ログアウト</button></div>');
+  bindHome();
+  if (timer) clearInterval(timer);
+  timer = setInterval(function () {
+    var c = $('clock'); if (!c) return;
+    if (ymd(jst()) !== me.d) { clearIn(); return showLogin('日付が変わりました。今日のログインをしてください。'); }
+    c.innerHTML = clockHTML();
+  }, 15000);
+}
+function bindHome(){
+  Array.prototype.forEach.call(document.querySelectorAll('.btn[data-key]'), function (b) {
+    b.onclick = function () { location.href = './?go=' + b.getAttribute('data-key'); };
+  });
+  var pb = $('pbtn');
+  if (pb) pb.onclick = function () {
+    var d = jst(), kind = punch.inT ? '退勤' : '出勤';
+    dialog('<p class="big">' + md(d) + ' ' + hm(d) + '<br>' + kind + 'でよいですか？</p>' +
+      '<p class="small">見本なので記録はされません</p>' +
+      '<div class="row"><button type="button" class="sec" id="no2">やめる</button><button type="button" class="primary" id="yes2">はい</button></div>');
+    $('no2').onclick = closeDialog;
+    $('yes2').onclick = function () {
+      if (punch.inT) punch.outT = hm(d); else punch.inT = hm(d);
+      closeDialog(); $('punchWrap').innerHTML = punchHTML(); bindHome();
+    };
+  };
+  var lo = $('logout');
+  if (lo) lo.onclick = function () {
+    dialog('<p class="big">ログアウトしますか？</p><p class="small">次に開いたときは、社員番号と暗証番号を入れます。</p>' +
+      '<div class="row"><button type="button" class="sec" id="no2">やめる</button><button type="button" class="primary" id="yes2">ログアウト</button></div>');
+    $('no2').onclick = closeDialog;
+    $('yes2').onclick = function () { closeDialog(); clearIn(); showLogin(); };
+  };
+}
+
+// ===== はじまり =====
 var q = location.search;
 if (/[?&]a=1/.test(q)) {
-  // 配るURL：追加のしかたを出し、アドレスは「?a=1」なしに戻す（ホーム画面にはメニューが開く形で保存される）
+  // 配るURL：追加のしかたを出し、アドレスは「?a=1」なしに戻す（ホーム画面にはパルナビが開く形で保存される）
   $('guide').style.display = 'block';
   try { history.replaceState(null, '', location.pathname); } catch (e) {}
 } else {
   var m = q.match(/[?&]go=([a-z]+)/), app = m && APPS.filter(function (a) { return a.key === m[1] && a.url; })[0];
   if (app) {
     // システムを開く：上に「‹ パルナビ」の帯、その下に全画面で出す
-    // （中に出すと、Googleの「Apps Script のユーザーによって作成…」の帯が出ないため）
     $('head').style.display = 'none';
     $('wait').style.display = 'block';
     $('bar').style.display = 'flex'; $('bar').style.background = app.col; $('barT').textContent = app.name; $('wait').style.color = app.col;
@@ -109,16 +278,20 @@ if (/[?&]a=1/.test(q)) {
     f.onload = function () { $('wait').style.display = 'none'; f.style.display = 'block'; };
     f.src = app.url;
   } else {
-    // メニュー
-    var h = '';
-    APPS.forEach(function (a) {
-      h += a.url
-        ? '<button class="btn" style="border-color:' + a.col + ';color:' + a.col + '" onclick="location.href=\'./?go=' + a.key + '\'">' + icon(a) + '<span>' + a.name + '<small>' + a.sub + '</small></span></button>'
-        : '<div class="btn off" style="border-color:' + a.col + ';color:' + a.col + '">' + icon(a) + '<span>' + a.name + '<em>準備中</em><small>' + a.sub + '</small></span></div>';
-    });
-    h += '<p class="note">使いたいものを押してください。社員番号と暗証番号は、どれも同じです。</p>';
-    $('menu').innerHTML = h;
-    $('menu').style.display = 'block';
+    var saved = loadIn();
+    if (!saved) { clearIn(); showLogin(); }
+    else {
+      // 今日の印があれば番号を聞かずにホームを出し、裏で名簿を確かめる（辞めた人・番号を変えた人はここで止まる）
+      showHome(saved);
+      call({ act: 'check', tok: saved.tok }).then(function (r) {
+        if (r && r.ok) {
+          var changed = r.name !== saved.name || JSON.stringify(r.apps) !== JSON.stringify(saved.apps);
+          saved.name = r.name; saved.apps = r.apps; saveIn(saved);
+          if (changed && me && me.tok === saved.tok && $('dlg').hidden) showHome(saved);
+        }
+        else if (r && r.relogin) { clearIn(); showLogin(r.msg); }
+      }).catch(function () { /* つながらないときは、そのままホームを出しておく */ });
+    }
   }
 }
 </script>
