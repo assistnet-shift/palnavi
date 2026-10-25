@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- 版：パルナビ入口 v2（ログイン＋ホーム） 2026-10-25 -->
+<!-- 版：パルナビ入口 v2.1（ログイン＋ホーム・画面のはね止め） 2026-10-25 -->
 <html lang="ja">
 <head>
 <meta charset="utf-8">
@@ -82,6 +82,8 @@
   #wait{display:none;text-align:center;padding:40px 16px;color:var(--orange)}
   button:focus-visible{outline:3px solid #1d1d1d;outline-offset:2px}
   [hidden]{display:none!important}
+  /* 画面を引っぱったときに、ページ全体が上下にはねて動かないようにする（ほかのアプリと同じ感じにするため） */
+  html,body{overscroll-behavior:none}
 </style>
 </head>
 <body>
@@ -190,7 +192,6 @@ function showLogin(msg, no){
       showLogin('つながりませんでした。電波のよい所で、もう一度押してください。', no);
     });
   });
-  if (!no) try { $('no').focus(); } catch (e) {}
 }
 
 function clockHTML(){
