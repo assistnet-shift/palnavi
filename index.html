@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- 版：パルナビ入口 v2.1（ログイン＋ホーム・画面のはね止め） 2026-10-25 -->
+<!-- 版：パルナビ入口 v3（共通マスターにつなぐ：名簿の丸でボタン・全体お知らせ） 2026-10-29 -->
 <html lang="ja">
 <head>
 <meta charset="utf-8">
@@ -19,7 +19,7 @@
         --round:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN",sans-serif;color-scheme:light}
   body{margin:0;font-family:-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;background:var(--cream);color:var(--ink);line-height:1.6;font-size:15px}
   header{background:var(--orange);color:#fff;padding:12px 16px;padding-top:max(12px,env(safe-area-inset-top))}
-  header,#bar,h1,h2,.btn .n,.go,#wait,.primary,.pbtn,.clock .d,.clock .t,.hello{font-family:var(--round)}
+  header,#bar,h1,h2,.btn .n,.go,#wait,.primary,.pbtn,.clock .d,.clock .t,.hello,.sec{font-family:var(--round)}
   header b{font-size:20px;font-weight:800}
   header span{font-size:12px;opacity:.85;margin-left:8px}
   .wrap{max-width:480px;margin:0 auto;padding:16px;box-sizing:border-box}
@@ -80,6 +80,23 @@
   #bar a{color:#fff;text-decoration:none;font-weight:bold}
   #app{position:fixed;top:40px;left:0;width:100%;height:calc(100% - 40px);border:0;display:none;background:#fff}
   #wait{display:none;text-align:center;padding:40px 16px;color:var(--orange)}
+  /* お知らせ */
+  .os{border:1px solid var(--line);border-left:6px solid var(--orange);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;background:#FFFDF8}
+  .os.big{border-left-color:var(--red);background:#FFF4F2}
+  .os .tags{display:flex;gap:6px;flex-wrap:wrap}
+  .tag.co{background:var(--orange)}
+  .tag.red{background:var(--red)}
+  .tag.okd{background:#8C8175}
+  .os .ost{margin:0;font-family:var(--round);font-weight:800;font-size:17px;line-height:1.4}
+  .os.big .ost{color:var(--red)}
+  .os .osb{margin:0;font-size:15px;white-space:pre-wrap;word-break:break-word}
+  .okbtn{font-family:var(--round);font-weight:800;font-size:16px;color:#fff;background:var(--orange);border:none;border-radius:10px;padding:10px;cursor:pointer}
+  .okbtn[disabled]{opacity:.6}
+  .os .err{font-size:13px}
+  .osrest{display:flex;flex-direction:column;gap:10px}
+  /* 管理の人だけのボタン */
+  .kanri{border:2px dashed #5B6B73;background:#EEF2F3}
+  .kanri .btn{border-color:#5B6B73;background:#fff}
   button:focus-visible{outline:3px solid #1d1d1d;outline-offset:2px}
   [hidden]{display:none!important}
   /* 画面を引っぱったときに、ページ全体が上下にはねて動かないようにする（ほかのアプリと同じ感じにするため） */
@@ -119,6 +136,8 @@
 
 <script>
 // ===== パルナビ本体（ログインを受け付けるGoogleのプログラム）のURL =====
+// ===== 共通マスター（名簿・全体お知らせを書く画面）のURL。管理の人・書ける人だけにボタンを出す。中でもう1回番号を入れる =====
+var MASTER_URL = 'https://script.google.com/macros/s/AKfycbySy2ndCXyQussdKK6J9utTouq2NgVhcxQ59lvCKnzDVbgujEm95bgj2jp4vm80ATNw/exec';
 var HONTAI_URL = 'https://script.google.com/macros/s/AKfycbxatZVyenhqIbfmpnDE-1G2on_rbqnxSwzpgVkt0nqMn41psurF28w8Fst_OPphmgq3ZA/exec';
 // ===== ボタンの一覧（増やす・名前を変えるときはここだけ直す）=====
 // 並びは毎日使う順で固定。url が空のものは「準備中」で押せない。col＝そのシステムの色
@@ -126,6 +145,8 @@ var HONTAI_URL = 'https://script.google.com/macros/s/AKfycbxatZVyenhqIbfmpnDE-1G
 var APPS = [
   { key: 'shift',   ic: 'cal',   name: '休み・シフト',   desc: ['休みの申請', 'ヘルプの行き先', 'メッセージ'], col: '#2E7D4F', bg: '#EEF7EE',
     url: 'https://script.google.com/macros/s/AKfycbxKeAJdy7yPLMgJfe7t0ljhy5BYGuKgiROWgIiYWGi3W2N5MeAk6hjXzjFjhE4vtaIt/exec' },
+  { key: 'kintai',  ic: 'clock', name: '工場の勤怠',     desc: ['出勤・退勤の記録'], col: '#5B6B73', bg: '#EEF2F3',
+    url: '' },
   { key: 'order',   ic: 'list',  name: '発注・売上',     desc: ['お弁当の発注', '売上の報告'], col: '#6A5AA8', bg: '#F1EEFA',
     url: 'https://script.google.com/macros/s/AKfycbzONh4migWOInvwihrngaF8R1K1leY4-Tdz_SbGf4_qW7iCoTvkhIpFv2HVVwnWnErV/exec' },
   { key: 'bihin',   ic: 'box',   name: '備品・釣り銭',   desc: ['備品の依頼', '釣り銭・両替の依頼'], col: '#8A5A33', bg: '#F5EEE6',
@@ -137,6 +158,8 @@ var ICONS = {
   cal:   '<rect x="5" y="9" width="38" height="34" rx="6" fill="none" stroke="C" stroke-width="4"/><path d="M5 19h38" stroke="C" stroke-width="4"/><path d="M15 5v8M33 5v8" stroke="C" stroke-width="4" stroke-linecap="round"/><path d="M15 31l6 6 12-12" fill="none" stroke="C" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>',
   heart: '<path d="M24 42S6 31 6 18a9.5 9.5 0 0 1 18-4.5A9.5 9.5 0 0 1 42 18c0 13-18 24-18 24z" fill="C"/>',
   list:  '<rect x="9" y="6" width="30" height="38" rx="5" fill="none" stroke="C" stroke-width="4"/><path d="M17 17h14M17 25h14M17 33h9" stroke="C" stroke-width="4" stroke-linecap="round"/>',
+  clock: '<circle cx="24" cy="24" r="18" fill="none" stroke="C" stroke-width="4"/><path d="M24 13v12l8 5" fill="none" stroke="C" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>',
+  person:'<circle cx="24" cy="16" r="8" fill="none" stroke="C" stroke-width="4"/><path d="M8 42c2-9 8-13 16-13s14 4 16 13" fill="none" stroke="C" stroke-width="4" stroke-linecap="round"/>',
   box:   '<path d="M6 16l18-9 18 9v18l-18 9-18-9z" fill="none" stroke="C" stroke-width="4" stroke-linejoin="round"/><path d="M6 16l18 9 18-9M24 25v18" fill="none" stroke="C" stroke-width="4" stroke-linejoin="round"/>'
 };
 function icon(a){ return '<svg class="ic" viewBox="0 0 48 48" width="36" height="36" aria-hidden="true">' + ICONS[a.ic].replace(/C/g, a.col) + '</svg>'; }
@@ -186,7 +209,7 @@ function showLogin(msg, no){
     $('go').disabled = true; $('go').textContent = '確かめています…';
     call({ act: 'login', no: no, pin: pin }).then(function (r) {
       if (!r || !r.ok) return showLogin((r && r.msg) || 'うまくいきませんでした。もう一度押してください。', no);
-      var v = { tok: r.tok, d: r.d, no: no, name: r.name, apps: r.apps };
+      var v = { tok: r.tok, d: r.d, no: r.no || no, name: r.name, apps: r.apps, admin: !!r.admin, post: !!r.post, os: r.os || [] };
       saveIn(v); punch = { inT: null, outT: null }; showHome(v);
     }).catch(function () {
       showLogin('つながりませんでした。電波のよい所で、もう一度押してください。', no);
@@ -218,6 +241,68 @@ function appsHTML(v){
       : '<div class="btn prep" style="border-color:' + a.col + ';background:' + a.bg + ';cursor:default">' + inner + '</div>';
   }).join('') + '</div>';
 }
+// ===== お知らせ（全体お知らせ。まだ確認していないものを新しい順に3件まで。残りは「ほかのお知らせ」） =====
+var SHOW_OS = 3, osOpen = false;
+function untilText(u){ var m = String(u || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? Number(m[2]) + '月' + Number(m[3]) + '日まで' : ''; }
+function osCard(o){
+  return '<div class="os' + (o.big ? ' big' : '') + '">' +
+    '<div class="tags"><span class="tag co">会社全体</span>' + (o.big ? '<span class="tag red">大事</span>' : '') + (o.done ? '<span class="tag okd">確認済み</span>' : '') + '</div>' +
+    '<p class="ost">' + esc(o.title) + '</p>' +
+    '<p class="osb">' + esc(o.body) + '</p>' +
+    '<p class="small">' + esc(o.by) + '　' + esc(untilText(o.until)) + '</p>' +
+    (o.done ? '' : '<button type="button" class="okbtn" data-no="' + esc(o.no) + '">確認しました</button><p class="err" data-err="' + esc(o.no) + '" hidden></p>') +
+    '</div>';
+}
+function infoHTML(v){
+  var os = v.os || [];
+  var yet = os.filter(function (o) { return !o.done; }), done = os.filter(function (o) { return o.done; });
+  var top = yet.slice(0, SHOW_OS), rest = yet.slice(SHOW_OS).concat(done);
+  var h = '<h2>お知らせ' + (yet.length ? ' <span class="tag co">' + yet.length + '件</span>' : '') + '</h2>';
+  if (!os.length) return h + '<p class="small">いまお知らせはありません。</p>';
+  h += top.length ? top.map(osCard).join('') : '<p class="small">まだ確認していないお知らせはありません。</p>';
+  if (rest.length) {
+    h += osOpen
+      ? '<div class="osrest">' + rest.map(osCard).join('') + '<button type="button" class="sec" id="osFold">▲ たたむ</button></div>'
+      : '<button type="button" class="sec" id="osMore">▼ ほかのお知らせ（' + rest.length + '件）</button>';
+  }
+  return h;
+}
+function renderInfo(){ var b = $('info'); if (b && me) { b.innerHTML = infoHTML(me); bindInfo(); } }
+function bindInfo(){
+  var mo = $('osMore'); if (mo) mo.onclick = function () { osOpen = true; renderInfo(); };
+  var fo = $('osFold'); if (fo) fo.onclick = function () { osOpen = false; renderInfo(); };
+  Array.prototype.forEach.call(document.querySelectorAll('.okbtn[data-no]'), function (b) {
+    b.onclick = function () {
+      var no = b.getAttribute('data-no');
+      b.disabled = true; b.textContent = '記録しています…';
+      call({ act: 'oshirase_ok', tok: me.tok, osno: no }).then(function (r) {
+        if (r && r.ok) {
+          (me.os || []).forEach(function (o) { if (o.no === no) o.done = true; });
+          saveIn(me); renderInfo(); return;
+        }
+        if (r && r.relogin) { clearIn(); return showLogin(r.msg); }
+        okFail(b, no, (r && r.msg) || 'うまく記録できませんでした。もう一度押してください。');
+      }).catch(function () { okFail(b, no, 'つながりませんでした。電波のよい所で、もう一度押してください。'); });
+    };
+  });
+}
+function okFail(b, no, msg){
+  b.disabled = false; b.textContent = '確認しました';
+  var e = document.querySelector('[data-err="' + no + '"]'); if (e) { e.textContent = msg; e.hidden = false; }
+}
+// ===== 管理の人・全体お知らせを書ける人だけのボタン（共通マスターの画面を別に開く） =====
+function kanriHTML(v){
+  if (!v.admin && !v.post) return '';
+  var desc = [];
+  if (v.admin) desc.push('名簿（社員番号・使うシステム・暗証番号）');
+  if (v.post) desc.push('全体お知らせを書く・確認した人を見る');
+  desc.push('別の画面で開きます。中でもう一度、番号を入れます');
+  var a = { ic: 'person', col: '#5B6B73' };
+  return '<section class="box kanri"><h2>管理の人だけ</h2>' +
+    '<button type="button" class="btn" id="kanriBtn">' + icon(a) + '<span><span class="n" style="color:#5B6B73">' + (v.admin ? '名簿' : '全体お知らせ') + (v.admin && v.post ? '・全体お知らせ' : '') + '</span>' +
+    desc.map(function (t) { return '<small>' + esc(t) + '</small>'; }).join('') + '</span><span class="go2" style="color:#5B6B73">›</span></button></section>';
+}
+
 function showHome(v){
   me = v;
   show('<div class="col">' +
@@ -225,9 +310,10 @@ function showHome(v){
     '<p class="hello">' + esc(v.name) + 'さん</p>' +
     '<div id="punchWrap">' + punchHTML() + '</div>' +
     '<section class="box prep" id="plan"><h2>今日の予定 <span class="tag">準備中</span></h2><p class="small">今日と明日のお店と時間が、ここに出ます。</p></section>' +
-    '<section class="box prep" id="info"><h2>お知らせ <span class="tag">準備中</span></h2><p class="small">会社や各システムからのお知らせが、ここに出ます。</p></section>' +
+    '<section class="box" id="info">' + infoHTML(v) + '</section>' +
     appsHTML(v) +
     '<p class="small">使いたいものを押してください。</p>' +
+    kanriHTML(v) +
     '<button type="button" class="sec" id="logout">ログアウト</button></div>');
   bindHome();
   if (timer) clearInterval(timer);
@@ -238,6 +324,9 @@ function showHome(v){
   }, 15000);
 }
 function bindHome(){
+  bindInfo();
+  var kb = $('kanriBtn');
+  if (kb) kb.onclick = function () { window.open(MASTER_URL, '_blank'); };
   Array.prototype.forEach.call(document.querySelectorAll('.btn[data-key]'), function (b) {
     b.onclick = function () { location.href = './?go=' + b.getAttribute('data-key'); };
   });
@@ -286,8 +375,9 @@ if (/[?&]a=1/.test(q)) {
       showHome(saved);
       call({ act: 'check', tok: saved.tok }).then(function (r) {
         if (r && r.ok) {
-          var changed = r.name !== saved.name || JSON.stringify(r.apps) !== JSON.stringify(saved.apps);
-          saved.name = r.name; saved.apps = r.apps; saveIn(saved);
+          var nv = { name: r.name, apps: r.apps, admin: !!r.admin, post: !!r.post, os: r.os || [] };
+          var changed = JSON.stringify(nv) !== JSON.stringify({ name: saved.name, apps: saved.apps, admin: !!saved.admin, post: !!saved.post, os: saved.os || [] });
+          saved.name = nv.name; saved.apps = nv.apps; saved.admin = nv.admin; saved.post = nv.post; saved.os = nv.os; saveIn(saved);
           if (changed && me && me.tok === saved.tok && $('dlg').hidden) showHome(saved);
         }
         else if (r && r.relogin) { clearIn(); showLogin(r.msg); }
