@@ -238,7 +238,12 @@
   function dayName(d) { var t = now(); t = new Date(t.getFullYear(), t.getMonth(), t.getDate()); var diff = Math.round((d - t) / 86400000); return diff === 0 ? '今日' : diff === 1 ? '明日' : W[d.getDay()] + '曜'; }
   var S;
   window.DEMO_RESET = function () {
-    S = { ack: false, wish: '', hol: [] };
+    // 練習用：先月に自分の休みを2日（公休・有給）入れておく（過ぎた月の見え方を試すため）
+    var pm = new Date(TODAY.getFullYear(), TODAY.getMonth() - 1, 1), seed = [];
+    for (var d = new Date(pm.getTime()); d.getMonth() === pm.getMonth() && seed.length < 2; d.setDate(d.getDate() + 1)) {
+      if (d.getDay() === 3 || (d.getDay() === 5 && seed.length === 1 && d.getDate() > 14)) seed.push({ k: ymdS(d), md: mdw(new Date(d.getTime())), t: seed.length ? '有給' : '公休' });
+    }
+    S = { ack: false, wish: '', hol: seed };
   };
   window.DEMO_RESET();
   window.DEMO_DAYS = function () { return { today: TODAY, tom: TOM, mdw: mdw, ymd: ymdS, nextBiz: nextBiz, dayName: dayName }; };
@@ -867,7 +872,22 @@ if (/[?&]a=1/.test(q)) {
   .cal{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:6px 0}
   .cal button{background:#fff;border:1.5px solid #cfe0d3;border-radius:10px;padding:8px 2px;font-weight:700;font-size:14px;min-height:48px}
   .cal button.on{background:#2E7D4F;color:#fff;border-color:#2E7D4F}
-  .cal button.mine{background:#E8F3EA;color:#2E7D4F}
+  .calhd{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+  .calhd b{font-family:var(--round);font-size:18px;color:#2E7D4F}
+  .calhd button{width:48px;height:44px;border-radius:10px;border:2px solid #2E7D4F;background:#fff;color:#2E7D4F;font-size:22px;font-weight:800}
+  .calhd button[disabled]{opacity:.3}
+  .cal button{display:flex;flex-direction:column;align-items:center;gap:1px;padding:4px 2px}
+  .cal .dn{font-size:14px}
+  .cal .mk{font-size:15px;font-weight:800;min-height:18px}
+  .cal .mk.sm{font-size:10px}
+  .cal button.full .mk{color:#C62828;font-size:19px;line-height:18px}
+  .cal button.mine.yu{background:#1565C0;border-color:#1565C0}
+  .cal button.mine{background:#2E7D4F;color:#fff;border-color:#2E7D4F}
+  .cal button.off{background:#eee;color:#aaa;border-color:#e3e3e3}
+  .legend{margin-top:4px}
+  .legend .g{color:#2E7D4F}
+  .legend .b{color:#1565C0}
+  .tag.blu{background:#1565C0;color:#fff}
   .cal .wd{font-size:11px;font-weight:700;text-align:center;color:#6b6257}
 </style>
 <script>
@@ -912,32 +932,56 @@ if (/[?&]a=1/.test(q)) {
     return h + '<p class="small">※練習用の店と時間です。</p>';
   }
   function now17() { var t = new Date(); t = new Date(t.getTime() + (t.getTimezoneOffset() + 540) * 60000); return t.getHours() >= 17; }
+  // 休みを申請する（17-30⑩：月〜金のカレンダー・日付の下に○△×・月は ‹ › とスライド・前の月も自分の休み（公休／有給）が見られる）
+  var CM = 0, CLOSE = 10;
+  function hol_(k) { return ['2026-11-23', '2026-12-30', '2026-12-31', '2027-01-01', '2027-01-04', '2027-01-11'].indexOf(k) >= 0; }
+  function mark_(k) { var n = Number(k.slice(-2)) * 7 + Number(k.slice(5, 7)) * 3; return n % 5 === 0 ? '×' : n % 3 === 0 ? '△' : '○'; }
+  function mineOf_(k) { return window.DEMO_STATE().hol.filter(function (x) { return x.k === k; })[0]; }
   function yasumiHtml() {
     var S = window.DEMO_STATE(), h = '<h3>休み</h3>';
     h += '<div class="hc"><div class="ww">メッセージ</div><div class="ss">田知本さんとのやりとり（練習では送れません）</div></div>';
-    h += '<div class="hc"><div class="ww">自分の休み</div>' + (S.hol.length ? S.hol.map(function (x) { return '<div class="ss" style="font-size:15px;color:#2B2B2B;padding:4px 0">' + x.md + '　' + x.t + '　<span class="tag gry">受付済み</span></div>'; }).join('')
-      : '<div class="ss">まだありません</div>') + '</div>';
-    h += '<div class="hc"><div class="ww">休みを申請する</div><div class="ss">日にちを押して、種類を選んでください（練習では来月の平日）</div>';
-    var t = D.today, first = new Date(t.getFullYear(), t.getMonth() + 1, 1), m = first.getMonth(), d = new Date(first.getTime());
+    var t = D.today, base = new Date(t.getFullYear(), t.getMonth() + CM, 1), m = base.getMonth(), y = base.getFullYear();
+    var lim = new Date(t.getTime()); lim.setDate(lim.getDate() + CLOSE);
+    h += '<div class="hc" id="calBox"><div class="calhd"><button type="button" data-cm="-1"' + (CM <= -3 ? ' disabled' : '') + '>‹</button><b>' + y + '年' + (m + 1) + '月</b><button type="button" data-cm="1"' + (CM >= 2 ? ' disabled' : '') + '>›</button></div>';
+    h += '<div class="ss">' + (CM < 0 ? '過ぎた月です。自分の休みを確かめられます（緑の「休」＝公休、青の「有」＝有給）' : '日付を押すと休みを申請できます。左右に大きくなでると、前の月・次の月') + '</div>';
     h += '<div class="cal">' + ['月', '火', '水', '木', '金'].map(function (w) { return '<div class="wd">' + w + '</div>'; }).join('');
-    var pad = (d.getDay() + 6) % 7; if (pad > 4) { while (d.getDay() !== 1) d.setDate(d.getDate() + 1); pad = 0; }
+    var d = new Date(y, m, 1), pad = (d.getDay() + 6) % 7;
+    if (pad > 4) { while (d.getDay() !== 1) d.setDate(d.getDate() + 1); pad = 0; }
     for (var i = 0; i < pad; i++) h += '<span></span>';
     for (; d.getMonth() === m; d.setDate(d.getDate() + 1)) {
       if (d.getDay() === 0 || d.getDay() === 6) continue;
-      var k = D.ymd(d), mine = S.hol.some(function (x) { return x.k === k; });
-      h += '<button type="button" data-day="' + k + '" class="' + (PICK === k ? 'on' : mine ? 'mine' : '') + '">' + d.getDate() + '</button>';
+      var k = D.ymd(d), mine = mineOf_(k), past = d < t, shut = hol_(k), closed = !past && d < lim;
+      var lab = '<span class="dn">' + d.getDate() + '</span>';
+      if (mine) h += '<button type="button" class="mine' + (mine.t === '有給' ? ' yu' : '') + '" data-mine="' + k + '"' + (past || closed ? ' data-lock="1"' : '') + '>' + lab + '<span class="mk">' + (mine.t === '有給' ? '有' : '休') + '</span></button>';
+      else if (shut) h += '<button type="button" class="off" disabled>' + lab + '<span class="mk sm">休業</span></button>';
+      else if (past || closed) h += '<button type="button" class="off" disabled>' + lab + '<span class="mk"> </span></button>';
+      else { var mk = mark_(k); h += '<button type="button" class="' + (PICK === k ? 'on' : '') + (mk === '×' ? ' full' : '') + '" data-day="' + k + '" data-mk="' + mk + '">' + lab + '<span class="mk">' + mk + '</span></button>'; }
     }
-    h += '</div>';
+    h += '</div><div class="ss legend">○休めます　△残りわずか　×いっぱい（相談）／<b class="g">休</b>＝公休　<b class="b">有</b>＝有給</div>';
     if (PICK) {
       var pd = new Date(PICK + 'T00:00:00');
-      h += '<div class="ss" style="font-size:15px;color:#2B2B2B">' + D.mdw(pd) + ' を</div><div class="bb"><button type="button" class="w" data-ty="公休">休み（公休）</button><button type="button" class="w" data-ty="有給">有給</button></div>';
+      h += '<div class="ss" style="font-size:15px;color:#2B2B2B;margin-top:6px">' + D.mdw(pd) + ' を</div><div class="bb"><button type="button" class="w" data-ty="公休">休み（公休）</button><button type="button" class="w" data-ty="有給">有給</button></div>';
     }
+    var list = S.hol.filter(function (x) { return x.k.slice(0, 7) === D.ymd(base).slice(0, 7); }).sort(function (a, b) { return a.k < b.k ? -1 : 1; });
+    h += '<div class="ww" style="margin-top:10px;font-size:15px">' + (m + 1) + '月の自分の休み</div>' + (list.length ? list.map(function (x) {
+      return '<div class="ss" style="font-size:15px;color:#2B2B2B;padding:3px 0">' + x.md + '　<span class="tag ' + (x.t === '有給' ? 'blu' : 'grn') + '">' + x.t + '</span>' + (x.k < D.ymd(t) ? '' : '　<span class="tag gry">受付済み</span>') + '</div>';
+    }).join('') : '<div class="ss">ありません</div>');
     return h + '</div>';
   }
+  var SW = null;
   function drawShift() {
     var el = sft();
     $('bnav').hidden = true;
     el.innerHTML = '<div class="sbody">' + (TAB2 === 'plan' ? planCards() : yasumiHtml()) + '</div>' + tabs();
+    var cb = el.querySelector('#calBox');
+    if (cb) {
+      cb.addEventListener('touchstart', function (e) { var p = e.touches[0]; SW = { x: p.clientX, y: p.clientY }; }, { passive: true });
+      cb.addEventListener('touchend', function (e) {
+        if (!SW) return; var p = e.changedTouches[0], dx = p.clientX - SW.x, dy2 = p.clientY - SW.y; SW = null;
+        if (Math.abs(dx) < 80 || Math.abs(dx) < Math.abs(dy2) * 2) return;   // しっかり横に大きくなでたときだけ（17-30①）
+        var nc = Math.max(-3, Math.min(2, CM + (dx < 0 ? 1 : -1))); if (nc === CM) return; CM = nc; PICK = null; drawShift();
+      });
+    }
     el.onclick = function (e) {
       var b = e.target.closest('button'); if (!b) return;
       var t2 = b.getAttribute('data-t2'), a2 = b.getAttribute('data-a2'), dy = b.getAttribute('data-day'), ty = b.getAttribute('data-ty');
@@ -946,11 +990,21 @@ if (/[?&]a=1/.test(q)) {
       if (a2 === 'ack') { shiftAct({ act: 'ack', row: 'P1' }).then(function () { flash('了解しました'); drawShift(); }); return; }
       if (a2 === 'info') { alertMsg('蒲田アロマスクエア（練習）　住所：東京都大田区（練習）　お店の営業：11:00〜14:00'); return; }
       if (a2 === 'choose') { openChoose(D.ymd(D.tom)); FL.back = function () { drawShift(); }; FL.backLabel = '予定へ'; drawFlow(); return; }   // シフトから入ったら、閉じたらシフトの予定へ戻る
+      var cm = b.getAttribute('data-cm'), mn = b.getAttribute('data-mine');
+      if (cm) { CM = Math.max(-3, Math.min(2, CM + Number(cm))); PICK = null; drawShift(); return; }
+      if (mn) {
+        var mx = mineOf_(mn);
+        if (b.getAttribute('data-lock')) { alertMsg(mx.md + '　' + mx.t + '（取り消しの締め切りを過ぎています。変えるときは田知本さんへ）'); return; }
+        ask(mx.md + ' の' + mx.t + 'を<br>取り消します。よいですか？', '練習なので、本物の申請にはなりません。', function () {
+          var S2 = window.DEMO_STATE(); S2.hol = S2.hol.filter(function (x) { return x.k !== mn; }); flash('取り消しました'); drawShift(); });
+        return;
+      }
+      if (dy && b.getAttribute('data-mk') === '×') { alertMsg('この日はいっぱいです。田知本さんに相談してください。'); return; }
       if (dy) { PICK = dy; drawShift(); return; }
       if (ty) {
         var pd = new Date(PICK + 'T00:00:00');
         ask(D.mdw(pd) + ' を<br>' + (ty === '有給' ? '有給' : '休み') + 'で申請します。よいですか？', '練習なので、本物の申請にはなりません。', function () {
-          window.DEMO_STATE().hol.push({ k: PICK, md: D.mdw(pd), t: ty === '有給' ? '有給' : '休み' }); PICK = null; flash('申請しました'); drawShift();
+          window.DEMO_STATE().hol.push({ k: PICK, md: D.mdw(pd), t: ty === '有給' ? '有給' : '公休' }); PICK = null; flash('申請しました'); drawShift();
         });
       }
     };
