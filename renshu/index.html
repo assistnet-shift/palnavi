@@ -932,7 +932,7 @@ if (/[?&]a=1/.test(q)) {
     return h + '<p class="small">※練習用の店と時間です。</p>';
   }
   function now17() { var t = new Date(); t = new Date(t.getTime() + (t.getTimezoneOffset() + 540) * 60000); return t.getHours() >= 17; }
-  // 休みを申請する（17-30⑩：月〜金のカレンダー・日付の下に○△×・月は ‹ › とスライド・前の月も自分の休み（公休／有給）が見られる）
+  // 休みを申請する（17-30⑩：月〜金のカレンダー・日付の下に○△×・月は ‹ › だけ（スライドなし＝①）・前の月も自分の休み（公休／有給）が見られる）
   var CM = 0, CLOSE = 10;
   function hol_(k) { return ['2026-11-23', '2026-12-30', '2026-12-31', '2027-01-01', '2027-01-04', '2027-01-11'].indexOf(k) >= 0; }
   function mark_(k) { var n = Number(k.slice(-2)) * 7 + Number(k.slice(5, 7)) * 3; return n % 5 === 0 ? '×' : n % 3 === 0 ? '△' : '○'; }
@@ -943,7 +943,7 @@ if (/[?&]a=1/.test(q)) {
     var t = D.today, base = new Date(t.getFullYear(), t.getMonth() + CM, 1), m = base.getMonth(), y = base.getFullYear();
     var lim = new Date(t.getTime()); lim.setDate(lim.getDate() + CLOSE);
     h += '<div class="hc" id="calBox"><div class="calhd"><button type="button" data-cm="-1"' + (CM <= -3 ? ' disabled' : '') + '>‹</button><b>' + y + '年' + (m + 1) + '月</b><button type="button" data-cm="1"' + (CM >= 2 ? ' disabled' : '') + '>›</button></div>';
-    h += '<div class="ss">' + (CM < 0 ? '過ぎた月です。自分の休みを確かめられます（緑の「休」＝公休、青の「有」＝有給）' : '日付を押すと休みを申請できます。左右に大きくなでると、前の月・次の月') + '</div>';
+    h += '<div class="ss">' + (CM < 0 ? '過ぎた月です。自分の休みを確かめられます（緑の「休」＝公休、青の「有」＝有給）' : '日付を押すと休みを申請できます。月は ‹ › で変えます') + '</div>';
     h += '<div class="cal">' + ['月', '火', '水', '木', '金'].map(function (w) { return '<div class="wd">' + w + '</div>'; }).join('');
     var d = new Date(y, m, 1), pad = (d.getDay() + 6) % 7;
     if (pad > 4) { while (d.getDay() !== 1) d.setDate(d.getDate() + 1); pad = 0; }
@@ -968,20 +968,10 @@ if (/[?&]a=1/.test(q)) {
     }).join('') : '<div class="ss">ありません</div>');
     return h + '</div>';
   }
-  var SW = null;
   function drawShift() {
     var el = sft();
     $('bnav').hidden = true;
     el.innerHTML = '<div class="sbody">' + (TAB2 === 'plan' ? planCards() : yasumiHtml()) + '</div>' + tabs();
-    var cb = el.querySelector('#calBox');
-    if (cb) {
-      cb.addEventListener('touchstart', function (e) { var p = e.touches[0]; SW = { x: p.clientX, y: p.clientY }; }, { passive: true });
-      cb.addEventListener('touchend', function (e) {
-        if (!SW) return; var p = e.changedTouches[0], dx = p.clientX - SW.x, dy2 = p.clientY - SW.y; SW = null;
-        if (Math.abs(dx) < 80 || Math.abs(dx) < Math.abs(dy2) * 2) return;   // しっかり横に大きくなでたときだけ（17-30①）
-        var nc = Math.max(-3, Math.min(2, CM + (dx < 0 ? 1 : -1))); if (nc === CM) return; CM = nc; PICK = null; drawShift();
-      });
-    }
     el.onclick = function (e) {
       var b = e.target.closest('button'); if (!b) return;
       var t2 = b.getAttribute('data-t2'), a2 = b.getAttribute('data-a2'), dy = b.getAttribute('data-day'), ty = b.getAttribute('data-ty');
