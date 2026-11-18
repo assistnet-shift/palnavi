@@ -251,8 +251,7 @@
   function home() {
     var late = now().getHours() >= 17 && ymdS(now()) === ymdS(TODAY);
     var d1 = { d: ymdS(TODAY), day: dayName(TODAY), md: mdw(TODAY), slot: 'today',
-      plan: { row: 'P1', store: '蒲田アロマスクエア（練習）', start: '', end: '', hours: 0,   // 時間は出さない（2026-11-18 社長：時間はシステムで持たない）
-        ack: S.ack, needAck: true, ouen: false, partner: [], chg: null } };
+      plan: { row: 'P1', store: '蒲田アロマスクエア（練習）', start: '10:00', end: '14:00', hours: 4, ack: S.ack, needAck: true, ouen: false, partner: [], chg: null } };
     d1.todo = !S.ack;
     var d2 = { d: ymdS(TOM), day: dayName(TOM), md: mdw(TOM), slot: 'tomorrow', choose: { wish: S.wish, late: late, junkai: false, until: 17 } };
     d2.todo = !S.wish;
@@ -418,7 +417,7 @@ function punchHTML(){
 }
 
 // ===== 今日と明日の予定（シフトから。13.②③） =====
-var WISH = { ouen: '応援OK（店は田知本さんが決めます）', yukyu: '有給（あなたが選びました）', yasumi: '休み（あなたが選びました）', junkai: '巡回（回る店は本間さんから）' };
+var WISH = { ouen: '応援OK（店は田知本さんが決めます）', yukyu: '有給（あなたが選びました）', yasumi: '休み（あなたが選びました）', junkai: '巡回（本間さんに連絡を入れてください）' };
 function dayCell(r){ var p = r.md.split('（'); return '<div class="day"><b>' + esc(r.day) + '</b><span>' + esc(p[0]) + '<br>（' + esc(p[1] || '') + '</span></div>'; }
 function timeOf(p){ return p.start && p.end ? p.start + '〜' + p.end + (p.hours ? '（' + p.hours + '時間）' : '') : (p.junkai ? '4時間' : ''); }
 function planRow(r){
@@ -429,7 +428,7 @@ function planRow(r){
   } else if (r.plan) {
     var p = r.plan;
     w = (p.chg ? '<span class="chg">変更 ' + esc(p.chg.at) + '　' + esc(p.chg.from) + ' → ' + esc(p.store) + '</span>' : '') +
-      (p.junkai ? '巡回<small>回る店は本間さんから　' + esc(timeOf(p)) + '</small>' : esc(p.store) + '<small>' + esc(timeOf(p)) +
+      (p.junkai ? '巡回<small>本間さんに連絡を入れてください　' + esc(timeOf(p)) + '</small>' : esc(p.store) + '<small>' + esc(timeOf(p)) +
       (p.ouen ? '　応援' + (p.partner && p.partner.length ? '（担当の' + esc(p.partner.join('・')) + 'さんと2人）' : '') : '') + '</small>');
     b = p.needAck && !p.ack ? '<button type="button" class="pb" data-ack="' + esc(p.row) + '">了解する</button>' : (p.needAck ? '<span class="tag grn">了解</span>' : '');
   } else if (r.choose) {
@@ -918,7 +917,7 @@ if (/[?&]a=1/.test(q)) {
   function planCards() {
     var S = window.DEMO_STATE(), h = '<h3>予定</h3>';
     var late = now17();
-    h += '<div class="hc"><div class="dd">今日 ' + D.mdw(D.today) + '</div><div class="ww">蒲田アロマスクエア（練習）</div>' +
+    h += '<div class="hc"><div class="dd">今日 ' + D.mdw(D.today) + '</div><div class="ww">蒲田アロマスクエア（練習）</div><div class="ss">10:00〜14:00（4時間）</div>' +
       '<div class="bb">' + (S.ack ? '<span class="tag grn">了解</span>' : '<button type="button" data-a2="ack">了解する</button>') + '<button type="button" class="w" data-a2="info">お店の情報 ›</button></div></div>';
     var wish = { ouen: '応援OK（店は田知本さんが決めます）', yukyu: '有給（あなたが選びました）', yasumi: '休み（あなたが選びました）' }[S.wish];
     h += '<div class="hc' + (!S.wish && late ? ' red' : '') + '"><div class="dd">明日 ' + D.mdw(D.tom) + '</div>' +
@@ -927,7 +926,7 @@ if (/[?&]a=1/.test(q)) {
     var x = D.nextBiz(D.tom);
     for (var i = 0; i < 3; i++) {
       h += '<div class="hc"><div class="dd">' + D.dayName(x) + ' ' + D.mdw(x) + '</div><div class="ww">' + (i === 0 ? '新宿センタービル（練習）' : i === 1 ? '行き先なし' : 'まだ届いていません') + '</div><div class="ss">' +
-        (i === 0 ? '週の予定（了解はいりません）' : i === 1 ? '前日に聞きます' : '行き先が決まったら、ここに出ます') + '</div></div>';
+        (i === 0 ? '10:30〜14:30（4時間）　週の予定（了解はいりません）' : i === 1 ? '前日に聞きます' : '行き先が決まったら、ここに出ます') + '</div></div>';
       x = D.nextBiz(x);
     }
     return h + '<p class="small">※練習用の店と時間です。</p>';
